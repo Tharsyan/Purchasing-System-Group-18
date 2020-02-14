@@ -46,7 +46,7 @@ def fillinginvoice(request):
         context = {
                 'title': 'Invoice Form',
                 'invoice_id': 'INV' + str(inv_id),
-                'purchase_order_id': inv_id, 
+                'purchase_order_id': pur_id, 
                 'staff_id' : purchase_orders.person_id.person_id,
                 'vendor_id': purchase_orders.vendor_id.vendor_id,
                 'rows':item_list
@@ -55,9 +55,9 @@ def fillinginvoice(request):
         responsesItems = render(request,'Invoice/invoiceform.html',context).content
         return render(request,'Invoice/invoiceform.html',context)
 
-    except Invoice.DoesNotExist:
+    except PurchaseOrder.DoesNotExist:
 
-        context = { 'error': 'The invoice id is invalid !',
+        context = { 'error': 'The purchase order id is invalid !',
                     'title': 'Invoice Form'
             }
         return render(request,'Invoice/invoiceform.html',context)
@@ -71,8 +71,7 @@ def invoiceconfirmation(request):
     vendor_id = request.POST['vendor_id']
     description = request.POST['description']
     inv_stat = request.POST.get('invoice_status',False)
-    staff_info = Person.objects.get(person_id = staff_id)
-    vendor_info = Vendor.objects.get(vendor_id= vendor_id)
+
     responses = request.read()
     print(responses)
    
@@ -109,9 +108,12 @@ def invoiceconfirmation(request):
         i = i + 1
         grand_total = grand_total + total
     print(items)
-       
 
-    context = {
+    try:
+        staff_info = Person.objects.get(person_id = staff_id)
+        vendor_info = Vendor.objects.get(vendor_id= vendor_id)
+
+        context = {
             'title': 'Invoice Confirmation',
             'purchase_order_id' :pur_id,
             'invoice_id' : inv_id,
@@ -123,8 +125,16 @@ def invoiceconfirmation(request):
             'vendor_info' : vendor_info,
             'description' : description
         }
-    
-    return render(request,'Invoice/invoiceconfirmation.html',context)
+
+
+        return render(request,'Invoice/invoiceconfirmation.html',context)
+
+    except Person.DoesNotExist:
+
+        context = { 'error': 'Please fill in the required informatioon !',
+                        'title': 'Invoice Form'
+                }
+        return render(request,'Invoice/invoiceform.html',context)
 
  
 def invoicedetails(request):
@@ -134,7 +144,7 @@ def invoicedetails(request):
     staff_id = request.POST['staff_id']
     vendor_id = request.POST['vendor_id']
     description = request.POST['description']
-    purchaseorder = get_object_or_404(PurchaseOrder)
+    purchaseorder = get_object_or_404(PurchaseOrder, purchase_order_id = purchase_order_id)
     staff_info = Person.objects.get(person_id = staff_id)
     vendor_info = Vendor.objects.get(vendor_id = vendor_id)
 
@@ -174,7 +184,8 @@ def invoicedetails(request):
         i = i + 1
         grand_total = grand_total + total
     print(items)
-     
+
+ 
 
     # push the data to the database 
     current_time = datetime.datetime.now() 
@@ -214,7 +225,8 @@ def invoicedetails(request):
             'time_created': current_time,
             'description' : description
         }
-
+    
+    print(123)
     return render(request,'Invoice/invoicedetails.html',context)
 
 def invoicehistorydetails(request):
@@ -252,5 +264,4 @@ def invoicehistory(request):
             'rows':invoice,
             'year':'2019/2020'
         }
-
     return render(request,'Invoice/invoicehistory.html',context)

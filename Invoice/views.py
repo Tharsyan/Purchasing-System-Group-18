@@ -131,7 +131,7 @@ def invoiceconfirmation(request):
 
     except Person.DoesNotExist:
 
-        context = { 'error': 'Please fill in the required informatioon !',
+        context = { 'error invalid ID': 'Please fill in the correct information !',
                         'title': 'Invoice Form'
                 }
         return render(request,'Invoice/invoiceform.html',context)
